@@ -1,0 +1,109 @@
+---
+- name: Create a nextcloud network
+  community.docker.docker_network:
+    name: "{{ service_name }}_network"
+    driver: bridge
+    driver_options:
+      com.docker.network.bridge.name: "br-{{ service_name }}"
+
+- name: Make sure the nextcloud-mariadb container is created and running
+  community.docker.docker_container:
+    name: "{{ service_name }}-mariadb"
+    image: "mariadb:latest"
+    pull: true
+    recreate: true
+    keep_volumes: true
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ service_name }}_network"
+    command: "--transaction-isolation=READ-COMMITTED --binlog-format=ROW --skip-innodb-read-only-compressed --innodb-read-only-compressed=OFF"
+    state: "started"
+    env:
+      TZ: "{{ timezone }}"
+      MYSQL_ROOT_PASSWORD: "{{ nextcloud_mysql_root_password }}"
+      MYSQL_DATABASE: "{{ nextcloud_mysql_db }}"
+      MYSQL_USER: "{{ nextcloud_mysql_user }}"
+      MYSQL_PASSWORD: "{{ nextcloud_mysql_password }}"
+    volumes:
+      - "{{ service_data_path }}/mariadb/mysql:/var/lib/mysql"
+
+- name: Make sure the nextcloud-redis container is created and running
+  community.docker.docker_container:
+    name: "{{ service_name }}-redis"
+    networks:
+      - name: "{{ service_name }}_network"
+    image: "redis:alpine"
+    recreate: true
+    keep_volumes: true
+    pull: true
+    state: "started"
+    restart_policy: unless-stopped
+    volumes:
+      - "{{ service_data_path }}/redis:/data"
+
+- name: Make sure the nextcloud container is created and running
+  community.docker.docker_container:
+    name: "{{ service_name }}"
+    image: "{{ nextcloud_image }}:{{ nextcloud_image_version }}"
+    recreate: true
+    keep_volumes: true
+    pull: true
+    networks:
+      - name: "{{ service_name }}_network"
+    state: 'started'
+    env:
+      TZ: "{{ timezone }}"
+      MYSQL_DATABASE: "{{ nextcloud_mysql_db }}"
+      MYSQL_USER: "{{ nextcloud_mysql_user }}"
+      MYSQL_PASSWORD: "{{ nextcloud_mysql_password }}"
+      MYSQL_HOST: "{{ service_name }}-mariadb"
+      REDIS_HOST: "nextcloud-redis"
+      NEXTCLOUD_TRUSTED_DOMAINS: "{{ nextcloud_domain }}"
+      NEXTCLOUD_ADMIN_PASSWORD: "{{ nextcloud_admin_password }}"
+      NEXTCLOUD_ADMIN_USER: "{{ nextcloud_admin_username }}"
+      OVERWRITEPROTOCOL: "https"
+      OVERWRITEHOST: "{{ nextcloud_domain }}"
+      PHP_UPLOAD_LIMIT: "32G"
+      PHP_MEMORY_LIMIT: "4G"
+      TRUSTED_PROXIES: "172.0.0.0/8"
+      VIRTUAL_HOST: "{{ nextcloud_domain }}"
+      LETSENCRYPT_HOST: "{{ nextcloud_domain }}"
+      VIRTUAL_PORT: "80"
+      NGINX_CLIENT_MAX_BODY_SIZE: "32g"
+    volumes:
+      - "{{ service_data_path }}/data:/var/www/html"
+    restart_policy: unless-stopped
+
+- name: Schedule a Nextcloud library scan at midnight every day
+  cron:
+    name: Scan the Nextcloud library
+    hour: "0"
+    minute: "0"
+    job: "docker exec -u 33 nextcloud php /var/www/html/occ files:scan --all"
+
+- name: Trigger Nextcloud cron.php every 5 minutes
+  cron:
+    name: Trigger Nextcloud cron.php
+    minute: "*/5"
+    job: "docker exec -u 33 nextcloud php /var/www/html/cron.php"
+
+- name: Make sure the nextcloud-onlyoffice container is created and running
+  community.docker.docker_container:
+    name: "{{ service_name }}-onlyoffice"
+    image: "onlyoffice/documentserver"
+    recreate: true
+    keep_volumes: true
+    pull: true
+    state: 'started'
+    env:
+      TZ: "{{ timezone }}"
+      JWT_ENABLED: "true"
+      JWT_SECRET: "{{ onlyoffice_jwt_secret }}"
+      VIRTUAL_HOST: "{{ onlyoffice_domain }}"
+      LETSENCRYPT_HOST: "{{ onlyoffice_domain }}"
+      VIRTUAL_PORT: "80"
+    volumes:
+      - "{{ service_data_path }}/onlyoffice/logs:/var/log/onlyoffice"
+      - "{{ service_data_path }}/onlyoffice/data:/var/www/onlyoffice/Data"
+      - "{{ service_data_path }}/onlyoffice/database:/var/lib/postgresql"
+    restart_policy: unless-stopped

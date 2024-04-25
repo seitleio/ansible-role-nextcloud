@@ -1,0 +1,17 @@
+service_name: "nextcloud"
+service_data_path: "/data/services/{{ service_name }}"
+
+nextcloud_image: "nextcloud"
+nextcloud_image_version: "28.0.4-apache"
+nextcloud_domain: "nextcloud.example.com"
+
+nextcloud_admin_username: "{{ lookup('env', 'NEXTCLOUD_ADMIN_USERNAME') }}"
+nextcloud_admin_password: "{{ lookup('env', 'NEXTCLOUD_ADMIN_PASSWORD') }}"
+
+nextcloud_mysql_db: "nextcloud"
+nextcloud_mysql_user: "nextcloud"
+nextcloud_mysql_password: ""
+nextcloud_mysql_root_password: ""
+
+onlyoffice_jwt_secret: ""
+onlyoffice_domain: "onlyoffice.example.com"

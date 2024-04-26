@@ -11,7 +11,7 @@
     name: "{{ service_name }}-mariadb"
     image: "mariadb:latest"
     pull: true
-    recreate: true
+    recreate: "{{ allow_recreate_containers | default('false') }}"
     keep_volumes: true
     restart_policy: unless-stopped
     networks:
@@ -33,7 +33,7 @@
     networks:
       - name: "{{ service_name }}_network"
     image: "redis:alpine"
-    recreate: true
+    recreate: "{{ allow_recreate_containers | default('false') }}"
     keep_volumes: true
     pull: true
     state: "started"
@@ -45,7 +45,7 @@
   community.docker.docker_container:
     name: "{{ service_name }}"
     image: "{{ nextcloud_image }}:{{ nextcloud_image_version }}"
-    recreate: true
+    recreate: "{{ allow_recreate_containers | default('false') }}"
     keep_volumes: true
     pull: true
     networks:
@@ -91,7 +91,7 @@
   community.docker.docker_container:
     name: "{{ service_name }}-onlyoffice"
     image: "onlyoffice/documentserver"
-    recreate: true
+    recreate: "{{ allow_recreate_containers | default('false') }}"
     keep_volumes: true
     pull: true
     state: 'started'

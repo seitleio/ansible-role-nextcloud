@@ -2,7 +2,7 @@ service_name: "nextcloud"
 service_data_path: "/data/services/{{ service_name }}"
 
 nextcloud_image: "nextcloud"
-nextcloud_image_version: "28.0.4-apache"
+nextcloud_image_version: "29.0.0-apache"
 nextcloud_domain: "nextcloud.example.com"
 
 nextcloud_admin_username: "{{ lookup('env', 'NEXTCLOUD_ADMIN_USERNAME') }}"

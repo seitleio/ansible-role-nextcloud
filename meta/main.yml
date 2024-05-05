@@ -1,4 +1,6 @@
 galaxy_info:
+  role_name: nextcloud
+  namespace: seitleio
   author: Johannes Seitle
   description: Configures Nextcloud containers
   company: seitle.io

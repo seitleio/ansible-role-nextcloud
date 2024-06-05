@@ -1,4 +1,4 @@
-| Ansible Role | | nextcloud | |
+Ansible Role: nextcloud
 =========
 [![Ansible Lint](https://github.com/seitleio/ansible-role-nextcloud/actions/workflows/ansible-lint.yaml/badge.svg)](https://github.com/seitleio/ansible-role-nextcloud/actions/workflows/ansible-lint.yaml)
 

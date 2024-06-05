@@ -75,14 +75,14 @@
     restart_policy: unless-stopped
 
 - name: Schedule a Nextcloud library scan at midnight every day
-  cron:
+  ansible.builtin.cron:
     name: Scan the Nextcloud library
     hour: "0"
     minute: "0"
     job: "docker exec -u 33 nextcloud php /var/www/html/occ files:scan --all"
 
 - name: Trigger Nextcloud cron.php every 5 minutes
-  cron:
+  ansible.builtin.cron:
     name: Trigger Nextcloud cron.php
     minute: "*/5"
     job: "docker exec -u 33 nextcloud php /var/www/html/cron.php"

@@ -1,39 +1,76 @@
-Role Name
+| Ansible Role | | nextcloud | |
 =========
+[![Ansible Lint](https://github.com/seitleio/ansible-role-nextcloud/actions/workflows/ansible-lint.yaml/badge.svg)](https://github.com/seitleio/ansible-role-nextcloud/actions/workflows/ansible-lint.yaml)
 
-A brief description of the role goes here.
+This role creates a [Nextcloud](https://github.com/nextcloud/docker/tree/master) container and also an [OnlyOffice](https://github.com/ONLYOFFICE/Docker-CommunityServer) container.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+As a prerequisite Python 3, Python Pip and Python docker module are required on the target host. You can install the packages manually or via ansible (see [Example Playbook](#example-playbook)).
+
+```bash
+# Manually install the packages with apt
+apt install python3-full python3-pip python3-docker
+```
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+| name                          | purpose                                               | default value                                     | note |
+| ----------------------------- | ----------------------------------------------------- | ------------------------------------------------- | ---- |
+| service_name                  | Used for the docker container name and the data path. | "nextcloud"                                       |      |
+| service_data_location         | All data created by this service will be stored here. | "/data/services/{{ service_name }}"               |      |
+| nextcloud_image               | Which docker image to use.                            | "nextcloud"                                       |      |
+| nextcloud_image_version       | Which image version to use.                           | "29.0.0-apache"                                   |      |
+| nextcloud_domain              | The public domain of the Nextcloud service.           | "nextcloud.example.com"                           |      |
+| nextcloud_admin_username      |                                                       | "{{ lookup('env', 'NEXTCLOUD_ADMIN_USERNAME') }}" |      |
+| nextcloud_admin_password      |                                                       | "{{ lookup('env', 'NEXTCLOUD_ADMIN_PASSWORD') }}" |      |
+| nextcloud_mysql_db            |                                                       | "nextcloud"                                       |      |
+| nextcloud_mysql_user          |                                                       | "nextcloud"                                       |      |
+| nextcloud_mysql_password      |                                                       | ""                                                |      |
+| nextcloud_mysql_root_password |                                                       | ""                                                |      |
+| onlyoffice_jwt_secret         |                                                       | ""                                                |      |
+| onlyoffice_domain             | The public domain of the OnlyOffice service.          | "onlyoffice.example.com"                          |      |
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+* https://github.com/geerlingguy/ansible-role-docker
 
 Example Playbook
 ----------------
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```yaml
+- name: Run nextcloud on nextcloud_hosts
+  hosts: nextcloud_hosts
+  gather_facts: true
+  tags:
+    - setup_nextcloud
+  pre_tasks:
+  - name: Install requirements for Docker Ansible module
+    ansible.builtin.apt:
+      pkg:
+      - python3-full
+      - python3-pip
+      - python3-docker
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  roles:
+    - role: ansible-role-nextcloud
+```
 
 License
 -------
-
-BSD
+MIT
 
 Author Information
 ------------------
+Johannes Seitle <<johannes@seitle.io>>
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
-# ansible-role-nextcloud
+<br/><br/><hr/>
+<p align="center" style="font-size:24px">
+<img src="https://avatars.githubusercontent.com/u/102231325?s=400&u=0c500c28b968020e0c306478e55779ed7a872a98&v=4" width="128"/><br/>
+seitle.io
+<p/>
